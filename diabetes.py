@@ -1,19 +1,18 @@
+import os
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
-import googleapiclient.discovery
-import os
 from flask import Flask, render_template
-from dotenv import load_dotenv
-from tensorflow import keras
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'hard to guess string'
-from flask_bootstrap import Bootstrap5
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
+from sklearn.preprocessing import MinMaxScaler
+from tensorflow import keras
+from bootstrap_flask import Bootstrap5
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'hard to guess string'
 bootstrap5 = Bootstrap5(app)
 
 class LabForm(FlaskForm):
@@ -36,7 +35,6 @@ def index():
 def lab():
     form = LabForm()
     if form.validate_on_submit():
-        # get the form data for the patient data and put into a form for the
         X_test = np.array([[float(form.preg.data),
                             float(form.glucose.data),
                             float(form.blood.data),
@@ -49,31 +47,28 @@ def lab():
         print(X_test.shape)
         print(X_test)
 
-        # get the data for the diabetes data.
-        data = pd.read_csv('./diabetes.csv', sep=',')
+        csv_path = os.path.join(BASE_DIR, 'diabetes.csv')
+        data = pd.read_csv(csv_path, sep=',')
 
-        # extract the X and y from the imported data
         X = data.values[:, 0:8]
         y = data.values[:, 8]
 
-        # use MinMaxScaler to fit a scaler object
         scaler = MinMaxScaler()
         scaler.fit(X)
 
-        # min max scale the data for the prediction
         X_test = scaler.transform(X_test)
 
-                # 모델 로드
-        model = keras.models.load_model('pima_model.keras')
+        model_path = os.path.join(BASE_DIR, 'pima_model.keras')
+        model = keras.models.load_model(model_path)
 
-        # evaluate model
         prediction = model.predict(X_test)
         res = prediction[0][0]
         res = np.round(res, 2)
-        res = (float)(np.round(res * 100))
+        res = float(np.round(res * 100))
 
         return render_template('result.html', res=res)
+
     return render_template('prediction.html', form=form)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=5000)
