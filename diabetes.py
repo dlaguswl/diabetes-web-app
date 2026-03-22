@@ -7,7 +7,7 @@ from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow import keras
-from bootstrap_flask import Bootstrap5
+from flask_bootstrap import Bootstrap5
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
